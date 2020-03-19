@@ -27,7 +27,7 @@ websocket-client = "^0.56.0 "
 [tool.poetry.dev-dependencies]
 autoflake = "^1.2"
 bandit = "^1.6"
-black = {version = "^18.3-alpha.0",allows-prereleases = true}
+black = {version = "^19.10b0",allow-prereleases = true}
 bumpversion = "^0.5.3"
 coverage = "^4.5"
 flake8 = "^3.7"

@@ -1,3 +1,4 @@
+# flake8: noqa
 # Copyright 2014 Quip
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -11,6 +12,7 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+
 """A Quip API client library.
 
 For full API documentation, visit https://quip.com/api/.
@@ -30,25 +32,42 @@ given document, which is useful for automating a task list.
 
 import datetime
 import json
+import logging
 import ssl
 import sys
-import urllib.error
-import urllib.parse
-import urllib.request
+import time
 import xml.etree.cElementTree
-from importlib import reload
 
-Request = urllib.request.Request
-urlencode = urllib.parse.urlencode
-urlopen = urllib.request.urlopen
-HTTPError = urllib.error.HTTPError
+PY3 = sys.version_info > (3,)
 
-iteritems = dict.items
+if PY3:
+    import urllib.request
+    import urllib.parse
+    import urllib.error
+
+    Request = urllib.request.Request
+    urlencode = urllib.parse.urlencode
+    urlopen = urllib.request.urlopen
+    HTTPError = urllib.error.HTTPError
+
+    iteritems = dict.items
+
+else:
+    import urllib
+    import urllib2
+
+    Request = urllib2.Request
+    urlencode = urllib.urlencode
+    urlopen = urllib2.urlopen
+    HTTPError = urllib2.HTTPError
+
+    iteritems = dict.iteritems
+
 
 try:
     reload(sys)
     sys.setdefaultencoding("utf8")
-except Exception:
+except:
     # Can't change default encoding usually...
     pass
 
@@ -90,9 +109,14 @@ class QuipClient(object):
     """A Quip API client"""
 
     # Edit operations
-    APPEND, PREPEND, AFTER_SECTION, BEFORE_SECTION, REPLACE_SECTION, DELETE_SECTION = range(
-        6
-    )
+    (
+        APPEND,
+        PREPEND,
+        AFTER_SECTION,
+        BEFORE_SECTION,
+        REPLACE_SECTION,
+        DELETE_SECTION,
+    ) = range(6)
 
     # Folder colors
     MANILA, RED, ORANGE, GREEN, BLUE = range(5)
@@ -257,7 +281,7 @@ class QuipClient(object):
             "threads/search",
             query=query,
             count=count,
-            only_match_titles=False,
+            only_match_titles=only_match_titles,
             **kwargs
         )
 
@@ -278,12 +302,6 @@ class QuipClient(object):
             "threads/remove-members",
             post_data={"thread_id": thread_id, "member_ids": ",".join(member_ids)},
         )
-
-    def pin_to_desktop(self, thread_id, **kwargs):
-        """Pins the given thread to desktop."""
-        args = {"thread_id": thread_id}
-        args.update(kwargs)
-        return self._fetch_json("threads/pin-to-desktop", post_data=args)
 
     def move_thread(self, thread_id, source_folder_id, destination_folder_id):
         """Moves the given thread from the source folder to the destination one.
@@ -820,7 +838,10 @@ class QuipClient(object):
                 (k, v) for k, v in post_data.items() if v or isinstance(v, int)
             )
             request_data = urlencode(self._clean(**post_data))
-            request.data = request_data.encode()
+            if PY3:
+                request.data = request_data.encode()
+            else:
+                request.data = request_data
 
         if self.access_token:
             request.add_header("Authorization", "Bearer " + self.access_token)

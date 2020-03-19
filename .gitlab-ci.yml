@@ -38,7 +38,7 @@ unit_test:
   stage: Test
   script:
     - export TZ=America/Los_Angeles
-    - poetry config settings.virtualenvs.in-project true
+    - poetry config virtualenvs.in-project true
     - poetry add -D keyrings.alt
     - poetry install --verbose
     - poetry run pytest -ra --cov=quare tests/
