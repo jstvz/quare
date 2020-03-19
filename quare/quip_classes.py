@@ -160,10 +160,12 @@ class QuipThread:
         """
         self.messages = []
         client = quip.QuipClient(token)
-        COUNT = last_count = 200  # For the first iteration of the while loop
+        COUNT = 200
+        if last_n and last_n < COUNT:
+            COUNT = last_n
         last_usec = None
 
-        while last_count == COUNT:
+        while True:
             # I think the non list comprehension version is equally unreadable
             message_dicts = [
                 msg
@@ -174,8 +176,9 @@ class QuipThread:
             ]
 
             last_count = len(message_dicts)
+            last_usec = message_dicts[-1]["created_usec"]
             self.messages.extend(message_dicts)
-            if last_count == last_n:
+            if last_count in [last_n, 1] or (last_n and len(self.messages) >= last_n):
                 break
         return self.messages
 

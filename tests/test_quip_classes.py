@@ -57,7 +57,7 @@ def test_thread__get_messages(get_msg, get_thread, document_thread, thread_messa
     get_thread.return_value = document_thread
     get_msg.return_value = thread_messages
     thread = QuipThread.get_thread("fakeToken", "FakeID")
-    msgs = thread.get_messages("token")
+    msgs = thread.get_messages("token", last_n=len(thread_messages))
     assert len(msgs) == len(thread_messages)
     assert thread.id == document_thread["thread"]["id"]
 
